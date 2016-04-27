@@ -2,6 +2,7 @@ import re
 
 INDENT = '    '
 
+
 class Conf(object):
     def __init__(self, *args):
         self.blocks = list(args)
@@ -121,9 +122,9 @@ class Server(object):
                 ret.append(INDENT + x.as_block())
             elif isinstance(x, Container):
                 y = x.as_block()
-                ret.append('\n'+INDENT+y[0])
+                ret.append('\n' + INDENT + y[0])
                 for z in y[1:]:
-                    ret.append(INDENT+z)
+                    ret.append(INDENT + z)
         ret.append('}\n')
         return ret
 
@@ -177,12 +178,12 @@ class Container(object):
                 ret.append(INDENT + x.as_block())
             elif isinstance(x, Container):
                 y = x.as_block()
-                ret.append('\n'+INDENT+INDENT+y[0])
+                ret.append('\n' + INDENT + INDENT + y[0])
                 for z in y[1:]:
-                    ret.append(INDENT+z)
+                    ret.append(INDENT + z)
             else:
                 y = x.as_block()
-                ret.append(INDENT+y)
+                ret.append(INDENT + y)
         ret.append('}\n')
         return ret
 
@@ -224,6 +225,10 @@ class If(Container):
         super(If, self).__init__(value, *args)
         self.name = 'if'
 
+class Root(Container):
+    def __init__(self, value, *args):
+        super(Root, self).__init__(value, *args)
+        self.name = 'Root'
 
 class Upstream(Container):
     def __init__(self, value, *args):
@@ -249,6 +254,7 @@ class Key(object):
 def loads(data, conf=True):
     f = Conf() if conf else []
     lopen = []
+    lopen.insert(0, Root(''))
     for line in data.split('\n'):
         if re.match('\s*server\s*{', line):
             s = Server()
@@ -291,19 +297,24 @@ def loads(data, conf=True):
                 f.add(c) if conf else f.append(c)
     return f
 
+
 def load(fobj):
     return loads(fobj.read())
+
 
 def loadf(path):
     with open(path, 'r') as f:
         return load(f)
 
+
 def dumps(obj):
     return ''.join(obj.as_block())
+
 
 def dump(obj, fobj):
     fobj.write(dumps(obj))
     return fobj
+
 
 def dumpf(obj, path):
     with open(path, 'w') as f:
